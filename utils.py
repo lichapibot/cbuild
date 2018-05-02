@@ -1,6 +1,8 @@
 import os
 import yaml
 import urllib.request
+import bz2
+import shutil
 
 def create_dir(path):
 	if not os.path.exists(path):
@@ -36,5 +38,14 @@ def store_url(url, path):
 		data = response.read()
 		out_file.write(data)
 		print("retrieved {} to {} ( {} bytes )".format(url,path,len(data)))
+
+def unzip_bz2(frompath, topath, force):
+	if os.path.isfile(topath) and not force:
+		return
+	print("unzipping {} to {}".format(frompath, topath))
+	with bz2.open(frompath, mode = "rb") as f_in:
+		with open(topath, "wb") as f_out:
+			shutil.copyfileobj(f_in, f_out)
+
 
 

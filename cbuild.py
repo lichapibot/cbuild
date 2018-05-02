@@ -2,6 +2,7 @@ import argparse
 from utils import create_dir
 from utils import write_string_to_file
 from utils import store_url
+from utils import unzip_bz2
 import buildutils
 from buildutils import create_env
 from buildutils import load_defaults
@@ -9,6 +10,7 @@ from buildutils import dump_defaults
 from buildutils import get_next_lichess_db_name
 from buildutils import get_lichess_db_url
 from buildutils import zip_path
+from buildutils import source_path
 import yaml
 import os
 
@@ -22,7 +24,8 @@ import os
 parser = argparse.ArgumentParser(description='Filter PGN files and build a book from them')
 
 parser.add_argument('-e', '--env', help='create / activate build environment')
-parser.add_argument('--force', action="append", help='force [ env ]')
+parser.add_argument('-u', '--unzip',  action="store_true", help='unzip files in zip folder to pgn folder')
+parser.add_argument('--force', action="append", help='force [ env , unzip ]')
 parser.add_argument('--variant', action="store", help='variant')
 parser.add_argument('--nextlichessdb', action="store_true", help='download next lichess db')
 
@@ -72,6 +75,11 @@ elif args.nextlichessdb:
 	dbpath = os.path.join(zip_path(env), dbname)
 	print("retrieving {}".format(dbname))
 	store_url(dburl, dbpath)
+elif args.unzip:
+	for name in os.listdir(zip_path(env)):
+		zippath = os.path.join(zip_path(env), name)
+		sourcepath = os.path.join(source_path(env), name+".pgn")
+		unzip_bz2(zippath, sourcepath, get_force("unzip"))
 
 #########################################################################
 # store defaults
