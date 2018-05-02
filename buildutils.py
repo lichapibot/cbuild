@@ -4,8 +4,15 @@ from utils import write_string_to_file
 from utils import load_yaml
 from utils import dump_yaml
 import datetime
+import re
+import time
 
 DEFAULTS_PATH = "defaults.yml"
+
+DEFAULT_RATING = 1500
+DEFAULT_PLAYER = "?"
+
+TAG_REGEX = re.compile(r"^\[([A-Za-z0-9_]+)\s+\"(.*)\"\]\s*$")
 
 def env_path(env):
 	return os.path.join("envs",env)
@@ -78,3 +85,110 @@ def get_next_lichess_db_name(path, variant):
 def get_lichess_db_url(variant, name):
 	return "https://database.lichess.org/{}/{}".format(variant, name)
 
+class BasePgnVisitor():
+	def __init__(self):
+		self.cnt = 0
+		self.headers = {}
+		self.pgn = ""
+		self.created = time.time()
+		pass
+
+	def get_prop_int(self, prop, default):
+		try:
+			value = int(self.headers[prop])
+			return value
+		except:
+			return default
+
+	def get_prop_str(self, prop, default):
+		if prop in self.headers:
+			return self.headers[prop]
+		return default
+
+	def get_white_elo(self):
+		return self.get_prop_int("WhiteElo", DEFAULT_RATING)
+
+	def get_black_elo(self):
+		return self.get_prop_int("BlackElo", DEFAULT_RATING)
+
+	def get_min_elo(self):
+		return min(self.get_white_elo(), self.get_black_elo())
+
+	def get_white(self):
+		return self.get_prop_str("White", DEFAULT_PLAYER)
+
+	def get_black(self):
+		return self.get_prop_str("Black", DEFAULT_PLAYER)
+
+	def process(self):
+		pass
+
+	def show_info():
+		pass
+
+	def process_raw(self, header_lines, move_lines):		
+		self.cnt+=1
+
+		self.headers = {}
+		self.pgn = ""
+
+		for line in header_lines:
+			tag_match = TAG_REGEX.match(line)
+			if tag_match:
+				self.headers[tag_match.group(1)] = tag_match.group(2)
+
+		self.pgn = "\n".join(header_lines) + "\n" + "\n".join(move_lines)
+
+		elapsed = time.time() - self.created
+
+		rate = 0
+
+		if elapsed > 0:
+			rate = self.cnt / elapsed		
+
+		self.process()
+
+		if self.cnt % 10000 == 0:
+			print("completed {:8d} , elapsed {:8d} , games / sec {:12.2f}".format(self.cnt, int(elapsed), rate))
+			self.show_info()
+		
+
+def visit_pgn_file(path, visitor = BasePgnVisitor()):
+	print("visiting pgn file {}".format(path))
+
+	parse_start = True
+	parse_header = False
+	parse_moves_start = False
+	parse_moves = False
+	header_lines = []
+	move_lines = []
+	for line in open(path):		
+		sline = line.rstrip("\r\n")		
+		firstchar = None
+		if len(sline) > 0:
+			firstchar = sline[0]
+		if parse_start:
+			if firstchar == "[":
+				header_lines.append(sline)
+				parse_start = False
+				parse_header = True
+		elif parse_header:
+			if not firstchar == "[":
+				parse_header = False
+				parse_moves_start = True
+			else:
+				header_lines.append(sline)
+		elif parse_moves_start:
+			if len(sline) > 0:
+				parse_moves_start = False
+				parse_moves = True
+				move_lines.append(sline)
+		elif parse_moves:
+			if len(sline) == 0:
+				parse_moves = False
+				parse_start = True
+				visitor.process_raw(header_lines, move_lines)
+				header_lines = []
+				move_lines = []
+			else:
+				move_lines.append(sline)

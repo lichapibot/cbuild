@@ -19,6 +19,13 @@ def write_string_to_file(path, str, force = True):
 		outfile.write(str)
 	print("written file {} ( {} characters )".format(path,len(str)))
 
+def read_string_from_file(path, default):
+	try:
+		content = open(path).read()
+		return content
+	except:
+		return default
+
 def load_yaml(path):
 	try:
 		with open(path, 'r') as stream:
