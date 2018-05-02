@@ -3,6 +3,7 @@ from utils import create_dir
 from utils import write_string_to_file
 from utils import load_yaml
 from utils import dump_yaml
+import datetime
 
 DEFAULTS_PATH = "defaults.yml"
 
@@ -48,4 +49,32 @@ def load_defaults():
 
 def dump_defaults(defaults):
 	dump_yaml(DEFAULTS_PATH, defaults)
+
+def get_next_lichess_db_name(path, variant):
+	now = datetime.datetime.now()		
+	year = now.year
+	month = now.month - 2
+
+	names = sorted(list(os.listdir(path)))
+
+	if len(names) > 0:
+		last = names[0]
+		parts = last.split("_rated_")
+		if len(parts) > 1:
+			parts2 = parts[1].split(".")
+			parts3 = parts2[0].split("-")
+			try:
+				year = int(parts3[0])
+				month = int(parts3[1]) - 1
+			except:
+				pass
+
+	if month <= 0:
+		month = 12
+		year -= 1
+
+	return "lichess_db_{}_rated_{}-{:02d}.pgn.bz2".format(variant, year, month)
+
+def get_lichess_db_url(variant, name):
+	return "https://database.lichess.org/{}/{}".format(variant, name)
 

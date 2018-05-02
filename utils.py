@@ -1,5 +1,6 @@
 import os
 import yaml
+import urllib.request
 
 def create_dir(path):
 	if not os.path.exists(path):
@@ -29,3 +30,11 @@ def load_yaml(path):
 
 def dump_yaml(path, obj):
 	write_string_to_file(path,yaml.dump(obj))
+
+def store_url(url, path):
+	with urllib.request.urlopen(url) as response, open(path, 'wb') as out_file:
+		data = response.read()
+		out_file.write(data)
+		print("retrieved {} to {} ( {} bytes )".format(url,path,len(data)))
+
+
