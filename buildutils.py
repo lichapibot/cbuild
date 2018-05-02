@@ -137,7 +137,7 @@ class BasePgnVisitor():
 			if tag_match:
 				self.headers[tag_match.group(1)] = tag_match.group(2)
 
-		self.pgn = "\n".join(header_lines) + "\n" + "\n".join(move_lines)
+		self.pgn = "\n".join(header_lines) + "\n\n" + "\n".join(move_lines)
 
 		elapsed = time.time() - self.created
 
