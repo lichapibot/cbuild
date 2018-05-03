@@ -149,4 +149,4 @@ dump_defaults(defaults)
 
 print(defaults)
 
-print("------\nactive environment > {}".format(defaults["env"]))
+print("------\nactive environment > {} ( variant {} )".format(defaults["env"],defaults["variant"]))
