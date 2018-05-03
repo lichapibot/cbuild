@@ -3,8 +3,7 @@ from utils import create_dir
 from utils import write_string_to_file
 from utils import read_string_from_file
 from utils import store_url
-from utils import unzip_bz2
-import buildutils
+from utils import unzip
 from buildutils import create_env
 from buildutils import load_defaults
 from buildutils import dump_defaults
@@ -14,15 +13,13 @@ from buildutils import env_path
 from buildutils import zip_path
 from buildutils import source_path
 from buildutils import filtered_path
+from buildutils import book_path
 from buildutils import visit_pgn_file
 from buildutils import BasePgnVisitor
 from buildutils import visit_pgn_file
+from book import build_book_file
 import yaml
 import os
-
-#store_url("https://database.lichess.org/atomic/lichess_db_atomic_rated_2018-02.pgn.bz2","envs/atomic/zip/lichess_db_atomic_rated_2018-02.pgn.bz2")
-
-#print(get_next_lichess_db(buildutils.zip_path("atomic"),"atomic"))
 
 class FilterVisitor(BasePgnVisitor):
 	def __init__(self, outfile, filter_logic):
@@ -51,7 +48,9 @@ parser = argparse.ArgumentParser(description='Filter PGN files and build a book 
 parser.add_argument('-e', '--env', help='create / activate build environment')
 parser.add_argument('-u', '--unzip',  action="store_true", help='unzip files in zip folder to pgn folder')
 parser.add_argument('-f', '--filter',  action="store_true", help='filter files in source folder to filtered folder')
-parser.add_argument('--force', action="append", help='force [ env , unzip , filter ]')
+parser.add_argument('-b', '--build',  action="store_true", help='build polyglot book')
+parser.add_argument('-a', '--all',  action="store_true", help='unzip, filter, build')
+parser.add_argument('--force', action="append", help='force [ env , unzip , filter , build ]')
 parser.add_argument('--variant', action="store", help='variant')
 parser.add_argument('--nextlichessdb', action="store_true", help='download next lichess db')
 
@@ -94,20 +93,23 @@ if not args.env is None:
 	create_env(env, get_force("env"))
 	print("environment {} created ok".format(env))
 	defaults["env"] = env
-elif args.nextlichessdb:
+
+if args.nextlichessdb:
 	assert_env()
 	dbname = get_next_lichess_db_name(zip_path(env), variant)
 	dburl = get_lichess_db_url(variant, dbname)
 	dbpath = os.path.join(zip_path(env), dbname)
 	print("retrieving {}".format(dbname))
 	store_url(dburl, dbpath)
-elif args.unzip:
+
+if args.unzip or args.all:
 	assert_env()
 	for name in os.listdir(zip_path(env)):
 		zippath = os.path.join(zip_path(env), name)
 		sourcepath = os.path.join(source_path(env), name+".pgn")
-		unzip_bz2(zippath, sourcepath, get_force("unzip"))
-elif args.filter:
+		unzip(zippath, sourcepath, get_force("unzip"))
+
+if args.filter or args.all:
 	assert_env()
 	filter_logic_path = os.path.join(env_path(env), "filter_logic.py")				
 	filter_logic = read_string_from_file(filter_logic_path, "")		
@@ -118,6 +120,14 @@ elif args.filter:
 			visitor = FilterVisitor(open(filteredpath,"w"), filter_logic)		
 			visit_pgn_file(pgnpath, visitor)
 			pass
+
+if args.build or args.all:
+	assert_env()
+	for name in os.listdir(filtered_path(env)):
+		filteredpath = os.path.join(filtered_path(env), name)		
+		bookpath = os.path.join(book_path(env), name)+".bin"		
+		if ( not os.path.isfile(bookpath) ) or get_force("build"):
+			build_book_file(filteredpath, bookpath)
 
 #########################################################################
 # store defaults

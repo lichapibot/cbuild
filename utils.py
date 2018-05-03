@@ -46,11 +46,21 @@ def store_url(url, path):
 		out_file.write(data)
 		print("retrieved {} to {} ( {} bytes )".format(url,path,len(data)))
 
-def unzip_bz2(frompath, topath, force):
+def get_ext(path):
+	parts = path.split(".")
+	return parts[-1]
+
+def open_zip_by_ext(path, flags):
+	ext = get_ext(path)
+	if ext == "bz2":
+		return bz2.open(path, flags)
+	raise Exception("UnrecognizedCompressionFormat")
+
+def unzip(frompath, topath, force):
 	if os.path.isfile(topath) and not force:
 		return
 	print("unzipping {} to {}".format(frompath, topath))
-	with bz2.open(frompath, mode = "rb") as f_in:
+	with open_zip_by_ext(frompath, "rb") as f_in:
 		with open(topath, "wb") as f_out:
 			shutil.copyfileobj(f_in, f_out)
 
