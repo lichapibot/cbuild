@@ -5,12 +5,16 @@ import chess.polyglot
 MAX_BOOK_PLIES  = 60
 MAX_BOOK_WEIGHT = 10000
 
+def format_zobrist_key_hex(zobrist_key):
+	return "%0.16x" % zobrist_key
+
 def get_zobrist_key_hex(board):
-	return "%0.16x" % chess.polyglot.zobrist_hash(board)
+	return format_zobrist_key_hex(chess.polyglot.zobrist_hash(board))
 
 class BookMove():
 	def __init__(self):
 		self.weight = 0
+		self.move = None
 
 class BookPosition():
 	def __init__(self):
@@ -56,7 +60,7 @@ class Book():
 				zbytes = bytes.fromhex(zobrist_key_hex)				
 				bp = self.positions[zobrist_key_hex]												
 				for uci in bp.moves:					
-					m = chess.Move.from_uci(uci)
+					m = bp.moves[uci].move
 					mi = m.to_square+(m.from_square << 6)					
 					if not m.promotion==None:
 						mi+=((m.promotion-1) << 12)
@@ -72,6 +76,21 @@ class Book():
 			print("total of {} moves added to book {}".format(len(allentries), path))
 			for entry in sorted_entries:
 				outfile.write(entry)
+
+	def merge_file(self, path):
+		reader = chess.polyglot.open_reader(path)
+		cnt=0
+		for entry in reader:
+			cnt+=1
+			zobrist_key_hex = format_zobrist_key_hex(entry.key)
+			bp = self.get_position(zobrist_key_hex)
+			move = entry.move()
+			uci = move.uci()
+			bm = bp.get_move(uci)
+			bm.move = move
+			bm.weight+=entry.weight
+			if cnt % 10000 == 0:
+				print("merged {} moves".format(cnt))
 
 class LichessGame():
 	def __init__(self, game):
@@ -146,6 +165,8 @@ def build_book_file(pgnpath, bookpath):
 						uci="e8a8"
 
 				bm = bp.get_move(uci)
+
+				bm.move = chess.Move.from_uci(uci)
 
 				game_score = ligame.score()
 

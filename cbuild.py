@@ -18,6 +18,7 @@ from buildutils import visit_pgn_file
 from buildutils import BasePgnVisitor
 from buildutils import visit_pgn_file
 from book import build_book_file
+from book import Book
 import yaml
 import os
 
@@ -50,6 +51,7 @@ parser.add_argument('-u', '--unzip',  action="store_true", help='unzip files in 
 parser.add_argument('-f', '--filter',  action="store_true", help='filter files in source folder to filtered folder')
 parser.add_argument('-b', '--build',  action="store_true", help='build polyglot book')
 parser.add_argument('-a', '--all',  action="store_true", help='unzip, filter, build')
+parser.add_argument('-m', '--merge',  action="store_true", help='merge books')
 parser.add_argument('--force', action="append", help='force [ env , unzip , filter , build ]')
 parser.add_argument('--variant', action="store", help='variant')
 parser.add_argument('--nextlichessdb', action="store_true", help='download next lichess db')
@@ -128,6 +130,17 @@ if args.build or args.all:
 		bookpath = os.path.join(book_path(env), name)+".bin"		
 		if ( not os.path.isfile(bookpath) ) or get_force("build"):
 			build_book_file(filteredpath, bookpath)
+
+if args.merge or args.all:
+	assert_env()
+	book = Book()
+	for name in os.listdir(book_path(env)):
+		bookpath = os.path.join(book_path(env), name)		
+		mergepath = os.path.join(env_path(env), "merged.bin")
+		print("merging {}".format(bookpath))
+		book.merge_file(bookpath)
+	book.normalize_weights()		
+	book.save_as_polyglot(mergepath)
 
 #########################################################################
 # store defaults
