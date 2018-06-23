@@ -71,7 +71,7 @@ envs
     filter_logic.py    
 ```
 
-File `filter_logic` is a python code snippet that has access to the `BasePgnVisitor` instance as `self` and set the boolean variable `ok` to indicate whether to include the given gamve `True` or ignore it `False` ( the code can be empty to include all games ), file `config.yml` is reserved for build configuration, currently should be left empty.
+File `filter_logic` is a python code snippet that has access to the `BasePgnVisitor` ( https://github.com/lichapibot/cbuild/blob/master/buildutils.py#L88 ) instance as `self` and set the boolean variable `self.ok` to indicate whether to include the given game, `True` for including, `False` for excluding ( the code can be empty to include all games, this is the default ), file `config.yml` is reserved for build configuration, currently should be left empty.
 
 Example filter logic to filter out games less than 2200 rated:
 
@@ -88,9 +88,9 @@ The `zip` folder should contain `bz2` format zipped PGN files. To download the n
 
 ## Building files
 
-Running the program with `-u` switch will unzip the files in the `zip` folder to the `source` folder. The source foulder should contain the source PGN files, you can add your own files here. Running the program with `-f` switch will filter the files in the `source` folder to the `filtered` folder. Running the program with `-b` switch will build a book from each filtered PGN in the `filtered` folder and store them in the `book` folder. To merge all the books in the `book` folder into one book, use the `-m` switch. The merged book will be `merged.bin` in the env root folder.
+Running the program with `-u` switch will unzip the files in the `zip` folder to the `source` folder. The source folder should contain the source PGN files, you can add your own files here. Running the program with `-f` switch will filter the files in the `source` folder and store the filtered files in the `filtered` folder. Running the program with `-b` switch will build a book from each filtered PGN in the `filtered` folder and store them in the `book` folder. To merge all the books in the `book` folder into one book, use the `-m` switch. The merged book will be stored in a file called `merged.bin` in the build environment's root folder ( `envs/antichess/merged.bin` in our example ).
 
-This whole build process can be done in one step using the `-a` switch ( unzip, filter and build book ).
+This whole build process can be done in one step using the `-a` switch ( which encompasses unzip, filter and build book ).
 
 The build is incremental. If you want to build from scratch, use the `--force` switch.
 
