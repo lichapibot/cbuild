@@ -46,7 +46,7 @@ Install project dependencies from Pipfile.lock:
 
 # Usage
 
-First run the program with the -h switch to display help:
+First run the program with the `-h` switch to display help:
 
 `pipenv run python cbuild.py -h`
 
@@ -88,9 +88,11 @@ The `zip` folder should contain `bz2` format zipped PGN files. To download the n
 
 ## Building files
 
-Running the program with `-u` switch will unzip these files to the `source` folder, which should contain the source PGN files. Running the program with `-f` switch will filter these files to the `filtered` folder. Running the program with `-b` switch will build a book from each filtered PGN and store them in the `book` folder. To merge all the books in the `book` folder into one book, use the `-m` switch. The merged book will be `merged.bin` in the env root folder.
+Running the program with `-u` switch will unzip the files in the `zip` folder to the `source` folder. The source foulder should contain the source PGN files, you can add your own files here. Running the program with `-f` switch will filter the files in the `source` folder to the `filtered` folder. Running the program with `-b` switch will build a book from each filtered PGN in the `filtered` folder and store them in the `book` folder. To merge all the books in the `book` folder into one book, use the `-m` switch. The merged book will be `merged.bin` in the env root folder.
 
-The whole build process can be done in one step using the `-a` switch.
+This whole build process can be done in one step using the `-a` switch ( unzip, filter and build book ).
+
+The build is incremental. If you want to build from scratch, use the `--force` switch.
 
 # Putting it all together
 
