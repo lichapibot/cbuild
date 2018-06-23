@@ -84,7 +84,7 @@ if minelo < 2200:
 
 ## Downloading files
 
-The `zip` folder should contain `bz2` format zipped PGN files. To download the next monthly lichess database run the program with the `--nextlichessdb` switch ( you can repeat this several time to download databases for several months ).
+The `zip` folder should contain `bz2` format zipped PGN files. To download the next monthly lichess database run the program with the `--nextlichessdb` switch ( you can repeat this several times to download databases for several months ).
 
 ## Building files
 
